@@ -4,28 +4,27 @@ import sqlite3
 import os
 from telegram.ext import Updater, CommandHandler
 from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+
+bot_token = os.getenv('TOKEN')
+chat_id = os.getenv('CHATID')
+delay = int(os.getenv('DELAY', 60))
+
 
 Path("config").mkdir(parents=True, exist_ok=True)
-
-# Docker env
-if os.environ.get('TOKEN'):
-    Token = os.environ['TOKEN']
-    chatid = os.environ['CHATID']
-    delay = int(os.environ['DELAY'])
-else:
-    Token = "X"
-    chatid = "X"
-    delay = 60
-
-if Token == "X":
-    print("Token not set!")
 
 rss_dict = {}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
+# =========
 # SQLITE
+# =========
 
 
 def sqlite_connect():
@@ -138,7 +137,7 @@ def rss_monitor(context):
             conn.commit()
             conn.close()
             rss_load()
-            context.bot.send_message(chatid, rss_d.entries[0]['link'])
+            context.bot.send_message(chat_id, rss_d.entries[0]['link'])
 
 
 def cmd_test(update, context):
@@ -157,7 +156,7 @@ def init_sqlite():
 
 
 def main():
-    updater = Updater(token=Token, use_context=True)
+    updater = Updater(token=bot_token, use_context=True)
     job_queue = updater.job_queue
     dp = updater.dispatcher
 
