@@ -3,6 +3,10 @@ import logging
 import sqlite3
 import os
 from telegram.ext import Updater, CommandHandler
+from telegram.ext import CallbackContext
+
+from telegram import Update
+
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -60,7 +64,7 @@ def rss_load():
         rss_dict[row[0]] = (row[1], row[2])
 
 
-def cmd_rss_list(update, context):
+def cmd_rss_list(update: Update, context: CallbackContext):
     if bool(rss_dict) is False:
 
         update.effective_message.reply_text("The database is empty")
@@ -72,7 +76,7 @@ def cmd_rss_list(update, context):
                 "\nlast checked article: " + url_list[1])
 
 
-def cmd_rss_add(update, context):
+def cmd_rss_add(update: Update, context: CallbackContext):
     # try if there are 2 arguments passed
     try:
         context.args[1]
@@ -95,7 +99,7 @@ def cmd_rss_add(update, context):
         "added \nTITLE: %s\nRSS: %s" % (context.args[0], context.args[1]))
 
 
-def cmd_rss_remove(update, context):
+def cmd_rss_remove(update: Update, context: CallbackContext):
     conn = sqlite3.connect('config/rss.db')
     c = conn.cursor()
     q = (context.args[0],)
@@ -109,7 +113,7 @@ def cmd_rss_remove(update, context):
     update.effective_message.reply_text("Removed: " + context.args[0])
 
 
-def cmd_help(update, context):
+def cmd_help(update: Update, context: CallbackContext):
     update.effective_message.reply_markdown_v2(
         "RSS to Telegram bot" +
         "\n\nAfter successfully adding a RSS link, the bot starts fetching the feed every "
@@ -125,7 +129,7 @@ def cmd_help(update, context):
         "\n\nIf you like the project, star it on [DockerHub](https://hub.docker.com/r/bokker/rss.to.telegram)")
 
 
-def rss_monitor(context):
+def rss_monitor(context: CallbackContext):
     for name, url_list in rss_dict.items():
         rss_d = feedparser.parse(url_list[0])
         if (url_list[1] != rss_d.entries[0]['link']):
@@ -137,10 +141,11 @@ def rss_monitor(context):
             conn.commit()
             conn.close()
             rss_load()
-            context.bot.send_message(chat_id, rss_d.entries[0]['link'])
+            rss_post = rss_d.entries[0]['title'] + "\n\n" + rss_d.entries[0]['link']
+            context.bot.send_message(chat_id, rss_post)
 
 
-def cmd_test(update, context):
+def cmd_test(update: Update, context: CallbackContext):
     url = "https://www.reddit.com/r/funny/new/.rss"
     rss_d = feedparser.parse(url)
     rss_d.entries[0]['link']
