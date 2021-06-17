@@ -146,12 +146,16 @@ def rss_monitor(context: CallbackContext):
 
 
 def cmd_test(update: Update, context: CallbackContext):
-    url = "https://www.reddit.com/r/funny/new/.rss"
+    url = "https://feeds.feedburner.com/visualcapitalist"
     rss_d = feedparser.parse(url)
-    rss_d.entries[0]['link']
+
     update.effective_message.reply_text(
-        rss_d.entries[0]['title'] + "\n" +
-        rss_d.entries[0]['link'])
+        "<b>" + rss_d.entries[0]['title'] + "</b>"
+        + "\n"
+        + "<i>" + rss_d.entries[0]['summary_detail']["value"].split("</p>")[0].replace("<p>", "") + "</i>"
+        + "\n\n"
+        + rss_d.entries[0]['link']
+    , parse_mode="HTML")
 
 
 def init_sqlite():
